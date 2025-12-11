@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; 
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 
@@ -51,7 +51,6 @@ export default function Login() {
         <Input 
           label="Email" 
           value={email} 
-          // CORREÇÃO AQUI: Verifica se é evento ou valor direto
           onChange={(e) => setEmail(e.target ? e.target.value : e)} 
           type="email"
           placeholder="exemplo@email.com"
@@ -61,7 +60,6 @@ export default function Login() {
         <Input 
           label="Password" 
           value={password} 
-          // CORREÇÃO AQUI TAMBÉM
           onChange={(e) => setPassword(e.target ? e.target.value : e)} 
           type="password"
           placeholder="******"
@@ -73,9 +71,9 @@ export default function Login() {
             backgroundColor: "#ffebee", 
             color: "#c62828", 
             padding: "0.8rem", 
-            borderRadius: "6px",
-            marginBottom: "1rem",
-            fontSize: "0.9rem"
+            borderRadius: "6px", 
+            marginBottom: "1rem", 
+            fontSize: "0.9rem" 
           }}>
             {error}
           </div>
@@ -88,9 +86,14 @@ export default function Login() {
         </div>
       </form>
 
+      {/* --- ALTERADO AQUI --- */}
       <div style={{ marginTop: "1.5rem", textAlign: "center", fontSize: "0.85rem", color: "#888" }}>
-        <p></p>
-        <p></p>
+        <p>
+          Ainda não tem conta? <br />
+          <Link to="/registar" style={{ color: "#dc2626", fontWeight: "bold", textDecoration: "none" }}>
+            Registe-se aqui
+          </Link>
+        </p>
       </div>
     </div>
   );

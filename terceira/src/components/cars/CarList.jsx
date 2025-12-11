@@ -4,11 +4,12 @@ import Input from "../ui/Input";
 import Button from "../ui/Button"; 
 import CarCard from "./CarCard";
 
-export default function CarList() {
-  // AQUI ESTÁ O SEGREDO: Vamos buscar 'allCars' (todos) e não 'cars' (que pode vir já cortado)
-  const { allCars, cars, loading } = useContext(CarsContext);
+// 1. ACEITAR A PROP onEdit
+export default function CarList({ onEdit }) {
   
-  // Se 'allCars' não existir (depende da versão do teu Context), usamos 'cars' como fallback
+  // 2. BUSCAR deleteCar AO CONTEXTO
+  const { allCars, cars, loading, deleteCar } = useContext(CarsContext);
+  
   const listaCompleta = allCars || cars || [];
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,7 +23,6 @@ export default function CarList() {
     setCurrentPage(1); 
   };
 
-  // Filtra sobre a lista COMPLETA
   const filteredCars = listaCompleta.filter(car => 
     car.modelo.toLowerCase().includes(searchTerm) || 
     car.marca.toLowerCase().includes(searchTerm)
@@ -40,6 +40,12 @@ export default function CarList() {
 
   const goToPrevPage = () => {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Tem a certeza que deseja apagar este carro?")) {
+      await deleteCar(id);
+    }
   };
 
   if (loading) {
@@ -69,7 +75,15 @@ export default function CarList() {
         marginBottom: "2rem"
       }}>
         {currentCars.length > 0 ? (
-          currentCars.map(car => <CarCard key={car.id} car={car} />)
+          currentCars.map(car => (
+            // 3. PASSAR AS FUNÇÕES PARA O CARD
+            <CarCard 
+                key={car.id} 
+                car={car} 
+                onEdit={onEdit}       // Passa a função de editar recebida do Backoffice
+                onDelete={handleDelete} // Passa a função de apagar local
+            />
+          ))
         ) : (
           <p style={{ gridColumn: "1 / -1", textAlign: "center", color: "#666" }}>
             Nenhum carro encontrado.
@@ -77,7 +91,7 @@ export default function CarList() {
         )}
       </div>
 
-      {/* BOTÕES DE PAGINAÇÃO (Só aparecem se houver mais de 1 página) */}
+      {/* BOTÕES DE PAGINAÇÃO */}
       {filteredCars.length > carsPerPage && (
         <div style={{ 
           display: "flex", 
@@ -91,7 +105,6 @@ export default function CarList() {
           <Button 
             onClick={goToPrevPage} 
             disabled={currentPage === 1}
-            // Se não tiveres variant="secondary", podes usar style
             style={{ opacity: currentPage === 1 ? 0.5 : 1 }}
           >
             Anterior

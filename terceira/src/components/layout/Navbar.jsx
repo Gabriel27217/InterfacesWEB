@@ -11,6 +11,9 @@ export default function Navbar() {
     navigate("/");
   }
 
+  // Verifica se é admin (para usar na lógica abaixo)
+  const isAdmin = isLoggedIn && user && user.role === "admin";
+
   return (
     <nav>
       <h1 style={{ fontSize: "1.5rem", fontWeight: 600 }}>🏎️ AutoVital</h1>
@@ -27,25 +30,42 @@ export default function Navbar() {
         <Link to="/loja" style={linkStyle}>Loja</Link>
         <Link to="/sobre" style={linkStyle}>Sobre Nós</Link>
 
-        {isLoggedIn && (
+        {/* --- ALTERADO AQUI --- */}
+        {/* Só mostra o Backoffice se for ADMIN */}
+        {isAdmin && (
           <Link to="/gerir" style={linkStyle}>
             Backoffice
           </Link>
         )}
 
+        {/* Links para quem NÃO está logado */}
         {!isLoggedIn && (
-          <button
-            onClick={() => navigate("/login")}
-            style={{ ...button, background: "rgba(255,255,255,0.2)" }}
-          >
-            Login
-          </button>
+          <>
+            <Link to="/registar" style={linkStyle}>
+              Criar Conta
+            </Link>
+
+            <button
+              onClick={() => navigate("/login")}
+              style={{ ...button, background: "rgba(255,255,255,0.2)" }}
+            >
+              Login
+            </button>
+          </>
         )}
 
+        {/* Links para quem ESTÁ logado (Cliente ou Admin) */}
         {isLoggedIn && (
           <>
+            {/* Opcional: Link para a área de cliente se NÃO for admin */}
+            {!isAdmin && (
+              <Link to="/minha-conta" style={linkStyle}>
+                Minha Conta
+              </Link>
+            )}
+            
             <span style={{ color: "white", opacity: 0.8 }}>
-              Olá, {user.username}!
+              Olá, {user.username || user.name || "Utilizador"}!
             </span>
             <button
               onClick={handleLogout}

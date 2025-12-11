@@ -1,28 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Importar navigate
 import CarForm from "../components/cars/CarForm";
 import CarList from "../components/cars/CarList";
-import ClientForm from "../components/clients/ClientForm";
 import ClientList from "../components/clients/ClientList";
 import { useAuth } from "../hooks/useAuth";
 
 export default function Backoffice() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
+  const navigate = useNavigate();
   const [editingCar, setEditingCar] = useState(null);
-  const [editingClient, setEditingClient] = useState(null);
 
-  if (!isLoggedIn) {
-    return <h2> Acesso restrito. Faça login para continuar.</h2>;
+  // --- PROTEÇÃO DE ROTA ---
+  // Se não estiver logado OU se estiver logado mas não for admin...
+  if (!isLoggedIn || (user && user.role !== "admin")) {
+    
+    // Podes redirecionar automaticamente para a loja:
+    // useEffect(() => { navigate("/"); }, []);
+    // return null;
+
+    // OU mostrar uma mensagem de erro:
+    return (
+      <div style={{ padding: "3rem", textAlign: "center", color: "#dc2626" }}>
+        <h2> Acesso Negado</h2>
+        <p>Esta página é exclusiva para administradores.</p>
+        <p>Maloto!! Assin:Cebolinha</p>
+        <button onClick={() => navigate("/")} style={{ marginTop: "1rem", padding: "0.5rem 1rem", cursor: "pointer" }}>
+          Voltar à Loja
+        </button>
+      </div>
+    );
   }
 
-  // Função auxiliar para editar e subir a página
   const handleEditCar = (car) => {
     setEditingCar(car);
-    // Isto faz a magia: leva o ecrã para o topo suavemente
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleEditClient = (client) => {
-    setEditingClient(client);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -33,27 +43,19 @@ export default function Backoffice() {
       {/* GESTÃO DE CARROS */}
       <section style={{ marginTop: "2rem" }}>
         <h2>Carros</h2>
-
+        {/* Admin pode criar/editar carros aqui */}
         <CarForm
           editingCar={editingCar}
           onFinish={() => setEditingCar(null)}
         />
-
-        {/* AQUI ESTÁ A MUDANÇA: Usamos a nova função handleEditCar */}
         <CarList onEdit={handleEditCar} />
       </section>
 
       {/* GESTÃO DE CLIENTES */}
       <section style={{ marginTop: "3rem" }}>
         <h2>Clientes</h2>
-
-        <ClientForm
-          editingClient={editingClient}
-          onFinish={() => setEditingClient(null)}
-        />
-
-        {/* Também aplicamos aos clientes */}
-        <ClientList onEdit={handleEditClient} />
+        {/* Admin vê a lista de clientes aqui */}
+        <ClientList />
       </section>
     </div>
   );

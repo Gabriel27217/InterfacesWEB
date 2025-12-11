@@ -1,11 +1,10 @@
 import React, { useContext } from "react";
 import { ClientsContext } from "../../context/ClientsContext";
-import { Link, useNavigate } from "react-router-dom";
-import Button from "../ui/Button"; // Certifica-te que tens este componente
+import Button from "../ui/Button"; 
+// Link e useNavigate removidos ou não usados para criação
 
 export default function ClientList() {
   const { clients, loading, deleteClient } = useContext(ClientsContext);
-  const navigate = useNavigate();
 
   const handleDelete = async (id) => {
     if (window.confirm("Tem a certeza que quer apagar este cliente?")) {
@@ -21,9 +20,9 @@ export default function ClientList() {
     <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem" }}>
         <h2>Lista de Clientes</h2>
-        <Link to="/clientes/novo">
-          <Button>+ Novo Cliente</Button>
-        </Link>
+        
+        {/* BOTÃO NOVO CLIENTE REMOVIDO DAQUI */}
+        
       </div>
 
       {clients.length === 0 ? (
@@ -47,21 +46,17 @@ export default function ClientList() {
                   <td style={{ padding: "12px" }}>{client.telefone || client.Telefone}</td>
                   <td style={{ padding: "12px" }}>
                     <div style={{ display: "flex", gap: "8px" }}>
+                      
+                      {/* Mantém-se apenas o Apagar (ou Editar se quiseres manter edição de dados existentes) */}
                       <Button 
-                        variant="secondary" 
-                        size="small"
-                        onClick={() => navigate(`/clientes/editar/${client.id}`)}
-                      >
-                        Editar
-                      </Button>
-                      <Button 
-                        variant="danger" // Se não tiveres variant danger, usa style={{ background: "red" }}
+                        variant="danger" 
                         size="small"
                         style={{ backgroundColor: "#dc3545", color: "white" }}
                         onClick={() => handleDelete(client.id)}
                       >
                         Apagar
                       </Button>
+                      
                     </div>
                   </td>
                 </tr>

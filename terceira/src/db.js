@@ -120,36 +120,7 @@ export const clientesIniciais = [
       "notas": "",
       "password": "1111"
     },
-    {
-      "id": 4,
-      "nome": "gertrudes",
-      "email": "gertrudes@gmail.com",
-      "telefone": "+55 919 250 111"
-    },
-    {
-      "id": 5,
-      "nome": "gertrudes",
-      "email": "gertrudes@gmail.com",
-      "telefone": "+55 919 250 111"
-    },
-    {
-      "id": 6,
-      "nome": "gertrudes",
-      "email": "gertrudes@gmail.com",
-      "telefone": "+55 919 250 111"
-    },
-    {
-      "id": 7,
-      "nome": "gertrudes",
-      "email": "gertrudes@gmail.com",
-      "telefone": "+55 919 250 111"
-    },
-    {
-      "id": 8,
-      "nome": "gertrudes",
-      "email": "gertrudes@gmail.com",
-      "telefone": "+55 919 250 111"
-    },
+    
     {
       "id": 9,
       "nome": "Trump",
@@ -158,6 +129,6 @@ export const clientesIniciais = [
       "carroComprado": "",
       "dataCompra": "",
       "notas": "",
-      "password": "0"
+      "password": "0000"
     }
 ];
