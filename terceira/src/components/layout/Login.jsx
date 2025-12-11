@@ -89,8 +89,8 @@ export default function Login() {
       </form>
 
       <div style={{ marginTop: "1.5rem", textAlign: "center", fontSize: "0.85rem", color: "#888" }}>
-        <p>Acesso Admin: admin@autovital.com</p>
-        <p>Acesso Cliente: Use o email registado no stand</p>
+        <p></p>
+        <p></p>
       </div>
     </div>
   );

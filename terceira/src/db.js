@@ -94,6 +94,13 @@ export const carrosIniciais = [
 
 export const clientesIniciais = [
     {
+    id: 999,
+    nome: "Administrador",
+    email: "admin@autovital.com",    //admistrador, não esquecer de passra para a folha de google shetty
+    password: "admin123", 
+    role: "admin"
+  },
+    {
       "id": 2,
       "nome": "Osvaldo",
       "email": "osvaldo@hotmial.com",
