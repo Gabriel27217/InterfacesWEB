@@ -1,68 +1,112 @@
-import React, { createContext, useState, useEffect } from "react";
-// Importa os teus dados locais
-import { carrosIniciais } from "../db";
+import React, { createContext, useEffect, useState } from "react";
+import {
+  getCars,
+  createCar,
+  updateCarById,
+  deleteCarById,
+} from "../api/carsApi"; // ajusta o path se a tua pasta não for /api
 
 export const CarsContext = createContext();
 
-// LINK DA API (COMENTADO PARA POUPAR REQUESTS)
-// const API_URL = "https://api.sheety.co/be4fa2efd3cd7dc007ba3247d051cbe4/showcarroRom/folha1";
+// API antiga (guardar por referência)
+// const API_URL_OLD = "https://api.sheety.co/be4fa2efd3cd7dc007ba3247d051cbe4/showcarroRom/folha1";
 
-const API_URL = "https://api.sheety.co/3156a1682b37bad7288f630932369003/dataCarros/carros";   //NOVA API por causa dos requests
+// NOTA: a API nova já está dentro do carsApi.js (API_URL + REACT_APP_CARS_API) [file:7]
 
 export function CarsProvider({ children }) {
   const [cars, setCars] = useState([]);
   const [allCars, setAllCars] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  async function refreshCars() {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const apiCars = await getCars(); // vem de carsApi.js [file:7]
+
+      // “limpa” para evitar undefined e garantir likes
+      const safeCars = (apiCars || []).map((car) => ({
+        ...car,
+        id: car.id,
+        marca: car.marca || "N/D",
+        modelo: car.modelo || "N/D",
+        ano: car.ano ?? "N/D",
+        preco: typeof car.preco === "number" ? car.preco : Number(car.preco) || 0,
+        cor: car.cor || "N/D",
+        km: parseInt(String(car.km ?? "0").replace(/ /g, "")) || 0,
+        foto: car.foto || "",
+        likes: Number(car.likes) || 0,
+      }));
+
+      setCars(safeCars);
+      setAllCars(safeCars);
+    } catch (e) {
+      setError(e?.message || "Erro a carregar carros");
+      setCars([]);
+      setAllCars([]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    // --- Carregamento LOCAL a partir do db.js ---
-    console.log("A carregar dados locais do db.js...");
+    // ✅ AGORA carrega DA API (não do db.js)
+    refreshCars();
 
-    // "Limpa" os teus dados para garantir que a aplicação não quebra
-    const safeCars = carrosIniciais.map(car => ({
-      // Valores por defeito para evitar erros de 'undefined'
-      marca: car.marca || "N/D",
-      modelo: car.modelo || "N/D",
-      ano: car.ano || "N/D",
-      preco: typeof car.preco === 'number' ? car.preco : 0,
-      cor: car.cor || "N/D",
-      // Converte "100 201" para o número 100201 e trata strings vazias
-      km: parseInt(String(car.km || '0').replace(/ /g, '')) || 0,
-      foto: car.foto || "",
-      id: car.id,
-      likes: car.likes || 0 // ✅ PONTO-CHAVE: Adiciona 'likes: 0' se não existir
-    }));
-      
-    setCars(safeCars);
-    setAllCars(safeCars);
-    setLoading(false);
-    
+    // --- Se um dia quiseres voltar ao db.js, deixo aqui comentado:
+    // import { carrosIniciais } from "../db";
+    // const safeCars = carrosIniciais.map(...)
+    // setCars(safeCars); setAllCars(safeCars); setLoading(false);
   }, []);
 
-  // As funções abaixo continuam a funcionar localmente, modificando o estado
   const addCar = async (car) => {
-    const newCar = { ...car, id: Date.now(), likes: 0 };
-    setCars(prev => [...prev, newCar]);
-    setAllCars(prev => [...prev, newCar]);
-    return true;
+    try {
+      setError(null);
+
+      // garante likes
+      const payload = { ...car, likes: Number(car.likes) || 0 };
+
+      await createCar(payload); // carsApi.js usa { carros: car } [file:7]
+      await refreshCars();
+
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: e?.message || "Erro ao adicionar carro" };
+    }
   };
 
   const updateCar = async (id, updatedCar) => {
-    const updater = (list) => list.map(c => c.id === id ? { ...c, ...updatedCar } : c);
-    setCars(prev => updater(prev));
-    setAllCars(prev => updater(prev));
-    return true;
+    try {
+      setError(null);
+
+      await updateCarById(id, updatedCar); // carsApi.js usa { carros: car } [file:7]
+      await refreshCars();
+
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: e?.message || "Erro ao atualizar carro" };
+    }
   };
 
   const deleteCar = async (id) => {
-    const filter = (list) => list.filter(c => c.id !== id);
-    setCars(prev => filter(prev));
-    setAllCars(prev => filter(prev));
-    return true;
+    try {
+      setError(null);
+
+      await deleteCarById(id); // carsApi.js faz DELETE [file:7]
+      await refreshCars();
+
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: e?.message || "Erro ao apagar carro" };
+    }
   };
 
   return (
-    <CarsContext.Provider value={{ cars, allCars, loading, addCar, updateCar, deleteCar }}>
+    <CarsContext.Provider
+      value={{ cars, allCars, loading, error, refreshCars, addCar, updateCar, deleteCar }}
+    >
       {children}
     </CarsContext.Provider>
   );

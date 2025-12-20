@@ -12,28 +12,34 @@ export async function getClients() {
 
 // ---- CREATE ----
 export async function createClient(client) {
-  const payload = { clientes: client };
+  // ✅ Sheety quer root property SINGULAR (cliente) [page:2]
+  const payload = { cliente: client };
+
   const res = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
+
   if (!res.ok) throw new Error(`Erro ao adicionar cliente (${res.status})`);
   return res.json();
 }
 
 // ---- UPDATE ----
 export async function updateClientById(id, client) {
-  const payload = { clientes: client };
+  // ✅ Sheety quer root property SINGULAR (cliente) [page:2]
+  const payload = { cliente: client };
+
   const res = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error(`Erro ao atualizar cliente (${res.status})`);
+
+  if (!res.ok) 
+    throw new Error(`Erro ao atualizar cliente (${res.status})`);
   return res.json();
 }
-
 // ---- DELETE ----
 export async function deleteClientById(id) {
   const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
