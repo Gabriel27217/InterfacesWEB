@@ -12,7 +12,7 @@ export default function Footer() {
     }}>
       <div style={{ marginBottom: "1rem" }}>
         <p style={{ fontWeight: "bold", fontSize: "1.1rem", marginBottom: "0.5rem" }}>AutoVital</p>
-        <p>Contacto: 906 442 304 | 915 430 525</p>
+        <p>Contacto: 916 442 304 | 915 430 525</p>
         <p>Email: suporte@autovital.com</p>
       </div>
       

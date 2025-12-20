@@ -1,17 +1,8 @@
 import React, { createContext, useEffect, useState } from "react";
-import {
-  getCars,
-  createCar,
-  updateCarById,
-  deleteCarById,
-} from "../api/carsApi"; // ajusta o path se a tua pasta não for /api
+import { getCars, createCar, updateCarById, deleteCarById } from "../api/carsApi";
+import { getFavorites } from "../api/favoritesApi";
 
 export const CarsContext = createContext();
-
-// API antiga (guardar por referência)
-// const API_URL_OLD = "https://api.sheety.co/be4fa2efd3cd7dc007ba3247d051cbe4/showcarroRom/folha1";
-
-// NOTA: a API nova já está dentro do carsApi.js (API_URL + REACT_APP_CARS_API) [file:7]
 
 export function CarsProvider({ children }) {
   const [cars, setCars] = useState([]);
@@ -24,9 +15,15 @@ export function CarsProvider({ children }) {
       setLoading(true);
       setError(null);
 
-      const apiCars = await getCars(); // vem de carsApi.js [file:7]
+      const [apiCars, favs] = await Promise.all([getCars(), getFavorites()]);
 
-      // “limpa” para evitar undefined e garantir likes
+      // conta likes por carId (fonte de verdade = favoritos)
+      const likesMap = {};
+      (favs || []).forEach((f) => {
+        const id = Number(f.carId);
+        if (!Number.isNaN(id)) likesMap[id] = (likesMap[id] || 0) + 1;
+      });
+
       const safeCars = (apiCars || []).map((car) => ({
         ...car,
         id: car.id,
@@ -37,7 +34,7 @@ export function CarsProvider({ children }) {
         cor: car.cor || "N/D",
         km: parseInt(String(car.km ?? "0").replace(/ /g, "")) || 0,
         foto: car.foto || "",
-        likes: Number(car.likes) || 0,
+        likes: likesMap[Number(car.id)] || 0, // ✅ calculado
       }));
 
       setCars(safeCars);
@@ -52,25 +49,18 @@ export function CarsProvider({ children }) {
   }
 
   useEffect(() => {
-    // ✅ AGORA carrega DA API (não do db.js)
     refreshCars();
-
-    // --- Se um dia quiseres voltar ao db.js, deixo aqui comentado:
-    // import { carrosIniciais } from "../db";
-    // const safeCars = carrosIniciais.map(...)
-    // setCars(safeCars); setAllCars(safeCars); setLoading(false);
   }, []);
 
   const addCar = async (car) => {
     try {
       setError(null);
 
-      // garante likes
-      const payload = { ...car, likes: Number(car.likes) || 0 };
+      // não precisas de mandar likes para a sheet
+      const payload = { ...car };
 
-      await createCar(payload); // carsApi.js usa { carros: car } [file:7]
+      await createCar(payload);
       await refreshCars();
-
       return { ok: true };
     } catch (e) {
       return { ok: false, message: e?.message || "Erro ao adicionar carro" };
@@ -80,10 +70,8 @@ export function CarsProvider({ children }) {
   const updateCar = async (id, updatedCar) => {
     try {
       setError(null);
-
-      await updateCarById(id, updatedCar); // carsApi.js usa { carros: car } [file:7]
+      await updateCarById(id, updatedCar);
       await refreshCars();
-
       return { ok: true };
     } catch (e) {
       return { ok: false, message: e?.message || "Erro ao atualizar carro" };
@@ -93,10 +81,8 @@ export function CarsProvider({ children }) {
   const deleteCar = async (id) => {
     try {
       setError(null);
-
-      await deleteCarById(id); // carsApi.js faz DELETE [file:7]
+      await deleteCarById(id);
       await refreshCars();
-
       return { ok: true };
     } catch (e) {
       return { ok: false, message: e?.message || "Erro ao apagar carro" };
@@ -105,7 +91,16 @@ export function CarsProvider({ children }) {
 
   return (
     <CarsContext.Provider
-      value={{ cars, allCars, loading, error, refreshCars, addCar, updateCar, deleteCar }}
+      value={{
+        cars,
+        allCars,
+        loading,
+        error,
+        refreshCars,
+        addCar,
+        updateCar,
+        deleteCar,
+      }}
     >
       {children}
     </CarsContext.Provider>

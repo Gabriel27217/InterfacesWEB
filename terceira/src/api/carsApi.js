@@ -2,7 +2,6 @@ const API_URL =
   process.env.REACT_APP_CARS_API ||
   "https://api.sheety.co/3156a1682b37bad7288f630932369003/dataCarros/carros";
 
-// ---- GET ALL ----
 export async function getCars() {
   const res = await fetch(API_URL);
   if (!res.ok) throw new Error(`Erro ao obter carros (${res.status})`);
@@ -10,9 +9,8 @@ export async function getCars() {
   return data.carros || [];
 }
 
-// ---- CREATE ----
 export async function createCar(car) {
-  const payload = { carros: car };
+  const payload = { carro: car }; //  singular
   const res = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -22,9 +20,8 @@ export async function createCar(car) {
   return res.json();
 }
 
-// ---- UPDATE ----
 export async function updateCarById(id, car) {
-  const payload = { carros: car };
+  const payload = { carro: car }; //  singular
   const res = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -34,7 +31,6 @@ export async function updateCarById(id, car) {
   return res.json();
 }
 
-// ---- DELETE ----
 export async function deleteCarById(id) {
   const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error(`Erro ao apagar carro (${res.status})`);
