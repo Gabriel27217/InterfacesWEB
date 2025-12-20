@@ -7,6 +7,8 @@ export const ClientsContext = createContext();
 // (LINK DA API ( PARA USO FUTURO)
 // const DEFAULT_API = "https://api.sheety.co/be4fa2efd3cd7dc007ba3247d051cbe4/showcarroRom/clientes";
 
+ const DEFAULT_API = "https://api.sheety.co/3156a1682b37bad7288f630932369003/dataCarros/clientes"; //NOVA API por causa dos requests
+
 export function ClientsProvider({ children }) {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +20,7 @@ export function ClientsProvider({ children }) {
     setLoading(false);
     
     /*
-    // --- CÓDIGO PARA QUANDO QUISERES USAR A API ---
+    --- CÓDIGO PARA QUANDO QUISERES USAR A API ---*/
     fetch(DEFAULT_API)
       .then(res => res.json())
       .then(data => {
@@ -29,7 +31,7 @@ export function ClientsProvider({ children }) {
         setError("Erro API");
         setLoading(false);
       });
-    */
+    
   }, []);
 
   // --- MÉTODOS SIMULADOS ---

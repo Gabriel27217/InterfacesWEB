@@ -10,16 +10,19 @@ export function AuthProvider({ children }) {
   // LINK DA API (COMENTADO PARA USO FUTURO)
   // const CLIENTS_API = "https://api.sheety.co/be4fa2efd3cd7dc007ba3247d051cbe4/showcarroRom/clientes";
 
+   const CLIENTS_API = "https://api.sheety.co/3156a1682b37bad7288f630932369003/dataCarros/clientes"; //NOVA API por causa dos requestsq
+
   // --- LOGIN ---
   const login = async (email, password) => {
     try {
+      /*
       // 1. MODO LOCAL (db.js) - Ativo agora
       const utilizadorEncontrado = clientesIniciais.find(
         (c) => c.email === email && (c.password && c.password.toString() === password.toString())
       );
 
       /* 
-      // 2. MODO API (Sheety) - Futuro
+      // 2. MODO API (Sheety) - Futuro*/
       const res = await fetch(CLIENTS_API);
       if (!res.ok) throw new Error("Erro na API");
       const data = await res.json();
@@ -27,7 +30,7 @@ export function AuthProvider({ children }) {
       const utilizadorEncontrado = clientes.find(
          (c) => c.email === email && String(c.password) === password
       );
-      */
+      
 
       if (utilizadorEncontrado) {
         const role = utilizadorEncontrado.role === "admin" ? "admin" : "client";
@@ -62,7 +65,7 @@ export function AuthProvider({ children }) {
 
       /*
       // 2. MODO API (Sheety) - Futuro
-      // Verifica primeiro na API se existe, depois cria
+      // Verifica primeiro na API se existe, depois cria*/
       const novoClienteAPI = {
         nome: dadosCliente.nome,
         email: dadosCliente.email,
@@ -75,7 +78,7 @@ export function AuthProvider({ children }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ cliente: novoClienteAPI })
       });
-      */
+      
 
       // 3. MODO LOCAL (Simulação Temporária)
       // Cria o cliente em memória e faz login imediato

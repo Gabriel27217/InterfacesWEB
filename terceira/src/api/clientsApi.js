@@ -1,6 +1,6 @@
 const API_URL =
   process.env.REACT_APP_CLIENTS_API ||
-  "https://api.sheety.co/be4fa2efd3cd7dc007ba3247d051cbe4/showcarroRom/clientes";
+  "https://api.sheety.co/3156a1682b37bad7288f630932369003/dataCarros/clientes";
 
 // ---- GET ----
 export async function getClients() {

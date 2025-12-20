@@ -10,6 +10,7 @@ export const carrosIniciais = [
       "km": 2000,
       "foto": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg/800px-2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg",
       "id": 2
+      
     },
     {
       "marca": "Toyota",

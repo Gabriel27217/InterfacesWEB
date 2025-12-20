@@ -58,7 +58,7 @@ export default function ClientArea() {
           boxShadow: "0 2px 5px rgba(0,0,0,0.05)"
         }}>
           <h3 style={{ borderBottom: "2px solid #25D366", paddingBottom: "0.5rem", marginTop: 0 }}>
-            📞 Suporte ao Cliente
+             Suporte ao Cliente
           </h3>
           <p>Os nossos vendedores estão disponíveis:</p>
           

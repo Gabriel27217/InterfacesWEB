@@ -2,21 +2,26 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/useAuth"; 
 import { useNavigate } from "react-router-dom";
 
+// --- CONFIGURAÇÃO API (COMENTADA PARA POUPAR REQUESTS) ---
+// const API_URL = "https://api.sheety.co/be4fa2efd3cd7dc007ba3247d051cbe4/showcarroRom/folha1";
+
 export default function LikeButton({ carId, initialLikes = 0 }) {
   const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
 
   const [isLiked, setIsLiked] = useState(false);
-  const [count, setCount] = useState(initialLikes);
+  const [count, setCount] = useState(initialLikes); 
+  const [loading, setLoading] = useState(false);
 
-  // --- CONFIGURAÇÃO API (FUTURO - DESCOMENTAR PARA LIGAR) ---
-  // const API_URL = `https://api.sheety.co/SEU_ID_AQUI/showcarroRom/folha1/${carId}`;
-
-  // Cria uma chave única baseada no email do user logado
-  // Se não houver user, a chave é nula (não guarda)
+  // Chave única para o localStorage (guarda se ESTE user deu like)
   const storageKey = user && user.email ? `likes_${user.email}` : null;
 
-  // Efeito: Verificar se ESTE user já deu like
+  // 1. Sincroniza o contador com o valor inicial (vindo do Context/DB)
+  useEffect(() => {
+    setCount(initialLikes || 0);
+  }, [initialLikes]);
+
+  // 2. Verifica no localStorage se este user JÁ deu like neste carro
   useEffect(() => {
     if (storageKey) {
       const userLikes = JSON.parse(localStorage.getItem(storageKey)) || [];
@@ -34,7 +39,7 @@ export default function LikeButton({ carId, initialLikes = 0 }) {
     e.preventDefault(); 
     e.stopPropagation();
 
-    // 1. Bloqueio de Login
+    // Bloqueio de Login
     if (!isLoggedIn) {
       if(window.confirm("Precisas de fazer login para adicionar aos favoritos. Ir para login?")) {
         navigate("/login");
@@ -42,45 +47,50 @@ export default function LikeButton({ carId, initialLikes = 0 }) {
       return;
     }
 
-    // Se por algum motivo não tivermos chave (erro no user), não faz nada
-    if (!storageKey) return;
+    if (!storageKey) return; // Se não houver chave (erro user), não faz nada
 
-    // 2. Lógica Local (Imediata)
+    // --- LÓGICA LOCAL (IMEDIATA) ---
     const userLikes = JSON.parse(localStorage.getItem(storageKey)) || [];
-    let newCount = count;
+    let newCount = count; // Variável temporária para usar na API se fosse ligada
 
     if (isLiked) {
-      // REMOVER LIKE
-      newCount = count - 1;
-      setCount(newCount);
+      // --- REMOVER LIKE ---
+      setCount((prev) => Math.max(0, prev - 1)); // Garante que não vai abaixo de 0
       setIsLiked(false);
+      newCount = Math.max(0, count - 1);
       
-      const newLikes = userLikes.filter((id) => id !== carId);
-      localStorage.setItem(storageKey, JSON.stringify(newLikes));
+      // Remove o ID do array e guarda
+      const newLikesList = userLikes.filter((id) => id !== carId);
+      localStorage.setItem(storageKey, JSON.stringify(newLikesList));
       
     } else {
-      // ADICIONAR LIKE
-      newCount = count + 1;
-      setCount(newCount);
+      // --- ADICIONAR LIKE ---
+      setCount((prev) => prev + 1);
       setIsLiked(true);
+      newCount = count + 1;
       
+      // Adiciona o ID ao array e guarda
       userLikes.push(carId);
       localStorage.setItem(storageKey, JSON.stringify(userLikes));
     }
     
-    // --- LÓGICA API SHEETY (FUTURO - DESCOMENTAR PARA LIGAR) ---
+    // --- LÓGICA API SHEETY (COMENTADA) ---
     /*
+    setLoading(true);
     try {
-      await fetch(API_URL, {
+      const response = await fetch(`${API_URL}/${carId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          folha1: { likes: newCount } // Garante que tens a coluna 'likes' no Excel
+          folha1: { likes: newCount } // Envia o novo valor calculado
         })
       });
       console.log("Like sincronizado com Sheety!");
     } catch (error) {
       console.error("Erro ao gravar like no servidor:", error);
+      // Aqui poderias reverter o estado se a API falhasse
+    } finally {
+      setLoading(false);
     }
     */
   };
