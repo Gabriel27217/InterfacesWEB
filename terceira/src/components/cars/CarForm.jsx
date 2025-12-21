@@ -12,7 +12,7 @@ export default function CarForm({ editingCar, onFinish }) {
     ano: "",
     preco: "",
     cor: "",
-    quilometragem: "",
+    km: "",
     descricao: "",
     foto: "",
   });
@@ -25,7 +25,7 @@ export default function CarForm({ editingCar, onFinish }) {
         ano: editingCar.ano || "",
         preco: editingCar.preco || "",
         cor: editingCar.cor || "",
-        quilometragem: editingCar.quilometragem || "",
+        km: editingCar.km || "",
         descricao: editingCar.descricao || "",
         foto: editingCar.foto || "",
       });
@@ -36,14 +36,13 @@ export default function CarForm({ editingCar, onFinish }) {
         ano: "",
         preco: "",
         cor: "",
-        quilometragem: "",
+        km: "",
         descricao: "",
         foto: "",
       });
     }
   }, [editingCar]);
 
-  // FUNÇÃO SIMPLIFICADA: Recebe sempre o NOME e o VALOR
   const updateField = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -55,30 +54,30 @@ export default function CarForm({ editingCar, onFinish }) {
       ...formData,
       ano: parseInt(formData.ano) || 0,
       preco: parseFloat(formData.preco) || 0,
-      quilometragem: parseInt(formData.quilometragem) || 0,
+      km: parseInt(formData.km) || 0,
     };
 
-    let result;
+    let ok;
     if (editingCar) {
-      result = await updateCar(editingCar.id, carData);
+      ok = await updateCar(editingCar.id, carData);
     } else {
-      result = await addCar(carData);
+      ok = await addCar(carData);
     }
 
-    if (result.ok) {
+    if (ok) {
       setFormData({
         marca: "",
         modelo: "",
         ano: "",
         preco: "",
         cor: "",
-        quilometragem: "",
+        km: "",
         descricao: "",
         foto: "",
       });
       if (onFinish) onFinish();
     } else {
-      alert(result.message);
+      alert("Erro ao guardar carro.");
     }
   };
 
@@ -95,8 +94,6 @@ export default function CarForm({ editingCar, onFinish }) {
     >
       <h3>{editingCar ? "Editar Carro" : "Adicionar Carro"}</h3>
 
-      {/* AQUI ESTÁ A CORREÇÃO: Definimos explicitamente o campo e o valor */}
-      
       <Input
         label="Marca"
         name="marca"
@@ -142,13 +139,13 @@ export default function CarForm({ editingCar, onFinish }) {
         />
         <Input
           label="Quilometragem"
-          name="quilometragem"
+          name="km"
           type="number"
-          value={formData.quilometragem}
-          onChange={(e) => updateField("quilometragem", e.target ? e.target.value : e)}
+          value={formData.km}
+          onChange={(e) => updateField("km", e.target ? e.target.value : e)}
         />
       </div>
-      
+
       <Input
         label="URL da Foto"
         name="foto"

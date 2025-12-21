@@ -34,7 +34,7 @@ export function CarsProvider({ children }) {
         cor: car.cor || "N/D",
         km: parseInt(String(car.km ?? "0").replace(/ /g, "")) || 0,
         foto: car.foto || "",
-        likes: likesMap[Number(car.id)] || 0, // ✅ calculado
+        likes: likesMap[Number(car.id)] || 0, //  calculado
       }));
 
       setCars(safeCars);
