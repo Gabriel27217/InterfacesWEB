@@ -5,6 +5,7 @@ import AppRouter from "./router";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
 import { CarsProvider } from "./context/CarsContext";
 import { ClientsProvider } from "./context/ClientsContext";
+import { CartProvider } from "./context/CartContext"; // <-- novo
 
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
@@ -29,7 +30,9 @@ export default function App() {
       <AuthProvider>
         <CarsProvider>
           <ClientsProvider>
-            <AppLayout />
+            <CartProvider>      {/* <-- aqui */}
+              <AppLayout />
+            </CartProvider>
           </ClientsProvider>
         </CarsProvider>
       </AuthProvider>
