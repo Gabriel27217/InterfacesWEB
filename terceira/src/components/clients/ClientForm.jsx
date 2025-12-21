@@ -1,71 +1,121 @@
-import React, { useState, useEffect } from "react";
-import Card from "../ui/Card";
-import Input from "../ui/Input";
+import React, { useContext, useState } from "react";
+import { ClientsContext } from "../../context/ClientsContext";
 import Button from "../ui/Button";
-import { useClients } from "../../hooks/useClients";
+import { useAuth } from "../../hooks/useAuth";
+import ClientForm from "./ClientForm";
 
-export default function ClientForm({ editingClient, onFinish }) {
-  const { addClient, updateClient } = useClients();
+export default function ClientList() {
+  const { clients, loading, deleteClient } = useContext(ClientsContext);
+  const { isLoggedIn, user } = useAuth();
+  const isAdmin = isLoggedIn && user && user.role === "admin";
 
-  const [client, setClient] = useState({
-    nome: "",
-    email: "",
-    telefone: "",
-  });
+  const [editingClient, setEditingClient] = useState(null);
 
-  useEffect(() => {
-    if (editingClient) setClient(editingClient);
-  }, [editingClient]);
-
-  function handleChange(field, value) {
-    setClient((prev) => ({ ...prev, [field]: value }));
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-
-    if (editingClient) {
-      await updateClient(editingClient.id, client);
-    } else {
-      await addClient(client);
+  const handleDelete = async (id) => {
+    if (window.confirm("Tem a certeza que quer apagar este cliente?")) {
+      await deleteClient(id);
     }
+  };
 
-    onFinish();
+  const handleFinishEdit = () => {
+    setEditingClient(null);
+  };
+
+  if (loading) {
+    return (
+      <p style={{ padding: "2rem", textAlign: "center" }}>
+        A carregar clientes...
+      </p>
+    );
   }
 
   return (
-    <Card>
-      <h2 style={{ marginBottom: "1rem", color: "#667eea" }}>
-        {editingClient ? "Editar Cliente" : "Adicionar Cliente"}
-      </h2>
+    <div style={{ padding: "2rem", maxWidth: "1200px", margin: "0 auto" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "2rem",
+        }}
+      >
+        <h2>Lista de Clientes</h2>
+      </div>
 
-      <form onSubmit={handleSubmit}>
-        <Input
-          label="Nome"
-          value={client.nome}
-          onChange={(v) => handleChange("nome", v)}
-          required
-        />
+      {/* Form de edição aparece em cima da tabela, só quando há cliente em edição */}
+      {editingClient && isAdmin && (
+        <div style={{ marginBottom: "2rem" }}>
+          <ClientForm editingClient={editingClient} onFinish={handleFinishEdit} />
+        </div>
+      )}
 
-        <Input
-          label="Email"
-          type="email"
-          value={client.email}
-          onChange={(v) => handleChange("email", v)}
-          required
-        />
+      {clients.length === 0 ? (
+        <p>Não existem clientes registados.</p>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              minWidth: "600px",
+            }}
+          >
+            <thead>
+              <tr style={{ backgroundColor: "#f8f9fa", textAlign: "left" }}>
+                <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>
+                  Nome
+                </th>
+                <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>
+                  Email
+                </th>
+                <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>
+                  Telefone
+                </th>
+                <th style={{ padding: "12px", borderBottom: "2px solid #ddd" }}>
+                  Ações
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {clients.map((client) => (
+                <tr key={client.id} style={{ borderBottom: "1px solid #eee" }}>
+                  <td style={{ padding: "12px" }}>
+                    {client.nome || client.Nome}
+                  </td>
+                  <td style={{ padding: "12px" }}>
+                    {client.email || client.Email}
+                  </td>
+                  <td style={{ padding: "12px" }}>
+                    {client.telefone || client.Telefone}
+                  </td>
+                  <td style={{ padding: "12px" }}>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      {isAdmin && (
+                        <Button
+                          variant="secondary"
+                          size="small"
+                          onClick={() => setEditingClient(client)}
+                        >
+                          Editar
+                        </Button>
+                      )}
 
-        <Input
-          label="Telefone"
-          value={client.telefone}
-          onChange={(v) => handleChange("telefone", v)}
-          required
-        />
-
-        <Button type="submit" variant="primary" style={{ width: "100%" }}>
-          {editingClient ? "Guardar Alterações" : "Adicionar Cliente"}
-        </Button>
-      </form>
-    </Card>
+                      <Button
+                        variant="danger"
+                        size="small"
+                        style={{ backgroundColor: "#dc3545", color: "white" }}
+                        onClick={() => handleDelete(client.id)}
+                      >
+                        Apagar
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
   );
 }

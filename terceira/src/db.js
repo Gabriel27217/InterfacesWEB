@@ -92,12 +92,12 @@ export const carrosIniciais = [
       "id": 11
     }
 ];
-
+//admistrador, não esquecer de passra para a folha de google shetty
 export const clientesIniciais = [
     {
     id: 999,
     nome: "Administrador",
-    email: "admin@autovital.com",    //admistrador, não esquecer de passra para a folha de google shetty
+    email: "admin@autovital.com",    
     password: "admin123", 
     role: "admin"
   },

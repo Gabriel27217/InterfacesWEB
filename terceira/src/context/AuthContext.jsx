@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   // --- LOGIN (API) ---
   const login = async (email, password) => {
     try {
-      const clientes = await getClients(); // GET /clientes [file:9]
+      const clientes = await getClients(); // GET /clientes 
 
       const utilizadorEncontrado = (clientes || []).find(
         (c) =>
