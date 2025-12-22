@@ -11,9 +11,44 @@ export default function CarCard({ car, onEdit, onDelete }) {
 
   const isAdmin = isLoggedIn && user && user.role === "admin";
 
+  const status = car.status || "disponivel";
+  const isSold = status === "vendido";
+  const isReserved = status === "sob_consulta";
+
+  // cliente só pode adicionar se estiver "disponivel"
+  const canAddToCart = status === "disponivel";
+
+  function getPriceLabel() {
+    if (isSold) return "Vendido";
+    if (isReserved) return "Sob consulta";
+    return `${car.preco} €`;
+  }
+
   return (
     <Card>
-      <div style={{ marginBottom: "1rem" }}>
+      <div style={{ marginBottom: "1rem", position: "relative" }}>
+        {/* Badge (tipo o print) */}
+        {(isSold || isReserved) && (
+          <div
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 10,
+              background: isSold ? "#111827" : "#0f766e",
+              color: "white",
+              padding: "0.25rem 0.6rem",
+              borderRadius: 6,
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              zIndex: 2,
+              letterSpacing: "0.5px",
+              textTransform: "uppercase",
+            }}
+          >
+            {isSold ? "VENDIDO" : "SOB CONSULTA"}
+          </div>
+        )}
+
         {car.foto ? (
           <img
             src={car.foto}
@@ -24,6 +59,7 @@ export default function CarCard({ car, onEdit, onDelete }) {
               objectFit: "cover",
               borderRadius: "4px",
               border: "1px solid #eee",
+              opacity: isSold ? 0.85 : 1,
             }}
           />
         ) : (
@@ -36,6 +72,7 @@ export default function CarCard({ car, onEdit, onDelete }) {
               alignItems: "center",
               justifyContent: "center",
               color: "#666",
+              borderRadius: "4px",
             }}
           >
             Sem foto
@@ -43,7 +80,7 @@ export default function CarCard({ car, onEdit, onDelete }) {
         )}
       </div>
 
-      {/* CABEÇALHO: Título + Like Button lado a lado */}
+      {/* CABEÇALHO */}
       <div
         style={{
           display: "flex",
@@ -59,28 +96,23 @@ export default function CarCard({ car, onEdit, onDelete }) {
         <LikeButton carId={car.id} initialLikes={car.likes || 0} />
       </div>
 
-      <div
-        style={{
-          fontSize: "0.9rem",
-          color: "#555",
-          marginBottom: "1rem",
-        }}
-      >
+      <div style={{ fontSize: "0.9rem", color: "#555", marginBottom: "1rem" }}>
         <p style={{ margin: "4px 0" }}>Ano: {car.ano}</p>
         <p style={{ margin: "4px 0" }}>KM: {car.km}</p>
+
         <p
           style={{
             margin: "8px 0",
             fontSize: "1.2rem",
             fontWeight: "bold",
-            color: "#333",
+            color: isSold ? "#6b7280" : "#333",
           }}
         >
-          {car.preco} €
+          {getPriceLabel()}
         </p>
       </div>
 
-      {/* Botões de ação (Cliente/Admin) */}
+      {/* Botões */}
       <div
         style={{
           marginTop: "1rem",
@@ -91,16 +123,22 @@ export default function CarCard({ car, onEdit, onDelete }) {
           flexWrap: "wrap",
         }}
       >
-        {/* Botão de Carrinho – sempre visível no frontoffice */}
+        {/* Carrinho */}
         <Button
           type="button"
           onClick={() => addToCart(car)}
-          style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}
+          disabled={!canAddToCart}
+          style={{
+            fontSize: "0.8rem",
+            padding: "0.4rem 0.8rem",
+            opacity: canAddToCart ? 1 : 0.6,
+            cursor: canAddToCart ? "pointer" : "not-allowed",
+          }}
         >
-          Adicionar ao Carrinho
+          {canAddToCart ? "Adicionar ao Carrinho" : "Indisponível"}
         </Button>
 
-        {/* Botões de Admin (Editar/Apagar) */}
+        {/* Admin */}
         {isAdmin && (
           <>
             {onEdit && (
