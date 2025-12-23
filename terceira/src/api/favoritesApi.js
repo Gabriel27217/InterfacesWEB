@@ -1,6 +1,10 @@
+//const API_URL =
+  //process.env.REACT_APP_FAVORITES_API ||
+  //"https://api.sheety.co/3156a1682b37bad7288f630932369003/dataCarros/favoritos";
+
 const API_URL =
   process.env.REACT_APP_FAVORITES_API ||
-  "https://api.sheety.co/3156a1682b37bad7288f630932369003/dataCarros/favoritos";
+  "https://api.sheety.co/483c093e1fe54f308dfe7b0dbafdf21a/dataCarros/favoritos";  
 
 export async function getFavorites() {
   const res = await fetch(API_URL);
@@ -10,11 +14,17 @@ export async function getFavorites() {
 }
 
 export async function createFavorite(fav) {
+  // Caminho A: fav.carId deve ser o car.id (Sheety rowId)
+  if (fav?.carId == null) {
+    throw new Error("createFavorite: carId em falta");
+  }
+
   const res = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ favorito: fav }), //  singular
+    body: JSON.stringify({ favorito: fav }),
   });
+
   if (!res.ok) throw new Error(`Erro ao criar favorito (${res.status})`);
   return res.json();
 }

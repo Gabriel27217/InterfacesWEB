@@ -1,8 +1,12 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useMemo, useState, useContext } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
-import { getFavorites, createFavorite, deleteFavoriteById } from "../../api/favoritesApi";
+import {
+  getFavorites,
+  createFavorite,
+  deleteFavoriteById,
+} from "../../api/favoritesApi";
 import { CarsContext } from "../../context/CarsContext";
 
 export default function LikeButton({ carId, initialLikes = 0 }) {
@@ -10,12 +14,14 @@ export default function LikeButton({ carId, initialLikes = 0 }) {
   const navigate = useNavigate();
   const { refreshCars } = useContext(CarsContext);
 
+  const numericCarId = useMemo(() => Number(carId), [carId]);
+
   const [isLiked, setIsLiked] = useState(false);
   const [count, setCount] = useState(Number(initialLikes) || 0);
   const [loading, setLoading] = useState(false);
   const [favoriteRowId, setFavoriteRowId] = useState(null);
 
-  // contador vem do CarCard (que vem do CarsContext já calculado)
+  // contador vem do CarsContext
   useEffect(() => {
     setCount(Number(initialLikes) || 0);
   }, [initialLikes]);
@@ -23,7 +29,7 @@ export default function LikeButton({ carId, initialLikes = 0 }) {
   // ver se este user já deu like neste carro
   useEffect(() => {
     async function loadFavorite() {
-      if (!isLoggedIn || !user?.email) {
+      if (!isLoggedIn || !user?.email || Number.isNaN(numericCarId)) {
         setIsLiked(false);
         setFavoriteRowId(null);
         return;
@@ -34,7 +40,7 @@ export default function LikeButton({ carId, initialLikes = 0 }) {
         const found = (favs || []).find(
           (f) =>
             String(f.email || "").toLowerCase() === String(user.email).toLowerCase() &&
-            Number(f.carId) === Number(carId)
+            Number(f.carId) === numericCarId // Caminho A: carId = car.id (Sheety rowId) 
         );
 
         setIsLiked(!!found);
@@ -47,50 +53,70 @@ export default function LikeButton({ carId, initialLikes = 0 }) {
     }
 
     loadFavorite();
-  }, [isLoggedIn, user?.email, carId]);
+  }, [isLoggedIn, user?.email, numericCarId]);
 
   const handleToggleLike = async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!isLoggedIn) {
-      if (window.confirm("Precisas de fazer login para adicionar aos favoritos. Ir para login?")) {
+      if (
+        window.confirm(
+          "Precisas de fazer login para adicionar aos favoritos. Ir para login?"
+        )
+      ) {
         navigate("/login");
       }
       return;
     }
+
     if (!user?.email) return;
     if (loading) return;
+    if (Number.isNaN(numericCarId)) return;
 
     setLoading(true);
     try {
       if (isLiked) {
+        // UI imediato
+        setCount((c) => Math.max(0, c - 1));
+
         // remover favorito
         if (favoriteRowId) await deleteFavoriteById(favoriteRowId);
         setIsLiked(false);
         setFavoriteRowId(null);
       } else {
-        // anti-duplicados (importante)
+        // UI imediato
+        setCount((c) => c + 1);
+
+        // anti-duplicados
         const favs = await getFavorites();
         const exists = (favs || []).find(
           (f) =>
             String(f.email || "").toLowerCase() === String(user.email).toLowerCase() &&
-            Number(f.carId) === Number(carId)
+            Number(f.carId) === numericCarId
         );
+
         if (exists) {
           setIsLiked(true);
           setFavoriteRowId(exists.id);
         } else {
-          const created = await createFavorite({ email: user.email, carId: Number(carId) });
+          const created = await createFavorite({
+            email: user.email,
+            carId: numericCarId, // Caminho A: guarda o id do Sheety [web:177]
+          });
           setIsLiked(true);
           setFavoriteRowId(created?.favorito?.id ?? null);
         }
       }
 
-      // atualiza contadores globais (recalcula likes a partir de favoritos)
+      // recalcula likes globais a partir de favoritos
       await refreshCars();
     } catch (err) {
       console.error("Erro a atualizar favorito:", err);
+
+      // se falhar, desfaz o update otimista do contador
+      setCount(Number(initialLikes) || 0);
+
       alert(err?.message || "Erro a atualizar favoritos.");
     } finally {
       setLoading(false);
