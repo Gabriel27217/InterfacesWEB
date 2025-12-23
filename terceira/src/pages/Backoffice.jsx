@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import CarForm from "../components/cars/CarForm";
 import CarList from "../components/cars/CarList";
@@ -8,10 +8,12 @@ import Button from "../components/ui/Button";
 import { useAuth } from "../hooks/useAuth";
 import { getOrders, updateOrderById } from "../api/ordersApi";
 import { updateCarById } from "../api/carsApi";
+import { CarsContext } from "../context/CarsContext"; // ← NOVO
 
 export default function Backoffice() {
   const { isLoggedIn, user } = useAuth();
   const navigate = useNavigate();
+  const { refreshCars } = useContext(CarsContext); // ← NOVO
 
   const [editingCar, setEditingCar] = useState(null);
 
@@ -19,7 +21,7 @@ export default function Backoffice() {
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState(null);
-  const [tab, setTab] = useState("em_curso"); // "em_curso" | "concluido"
+  const [tab, setTab] = useState("em_curso");
 
   const isAdmin = isLoggedIn && user && user.role === "admin";
   const hasAccess = isAdmin;
@@ -39,7 +41,6 @@ export default function Backoffice() {
   }
 
   useEffect(() => {
-    // Só carrega pedidos se tiver acesso evitar requests desnecessários
     if (hasAccess) refreshOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasAccess]);
@@ -57,18 +58,37 @@ export default function Backoffice() {
   }
 
   async function handleMarkPaid(order) {
+    if (!window.confirm(`Confirmar pagamento do Pedido #${order.id}?`)) return;
+
     try {
+      console.log("1. Atualizando pedido para concluido...");
       await updateOrderById(order.id, { ...order, estado: "concluido" });
 
       const itens = parseItens(order);
-      await Promise.all(
-        itens.map((c) => updateCarById(c.id, { status: "vendido" }))
-      );
+      console.log("2. Itens do pedido:", itens);
 
+      if (itens.length > 0) {
+        console.log("3. Marcando carros como vendidos...");
+        await Promise.all(
+          itens.map((c) => {
+            console.log(`   - Atualizando carro ${c.id} para vendido`);
+            return updateCarById(c.id, { status: "vendido" });
+          })
+        );
+      }
+
+      console.log("4. Refrescando pedidos...");
       await refreshOrders();
-      alert("Pedido concluído e carros marcados como vendidos.");
+
+      console.log("5. Refrescando carros..."); // ← NOVO
+      await refreshCars(); // ← CRÍTICO: atualiza o status na loja
+
+      alert(
+        `Pedido #${order.id} marcado como pago e carros marcados como vendidos.`
+      );
     } catch (e) {
-      alert(e?.message || JSON.stringify(e) || "Erro ao concluir pedido");
+      console.error("Erro ao concluir pedido:", e);
+      alert(e?.message || "Erro ao concluir pedido");
     }
   }
 
@@ -77,7 +97,6 @@ export default function Backoffice() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Só depois de declarar TODOS os hooks é que fazes o return condicional
   if (!hasAccess) {
     return (
       <div style={{ padding: "3rem", textAlign: "center", color: "#dc2626" }}>
@@ -162,7 +181,9 @@ export default function Backoffice() {
 
           return (
             <Card key={order.id} style={{ padding: "1rem" }}>
-              <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+              <div
+                style={{ display: "flex", gap: "1rem", alignItems: "center" }}
+              >
                 <div
                   style={{
                     width: 80,
@@ -202,11 +223,18 @@ export default function Backoffice() {
                   </div>
 
                   <div style={{ marginTop: 6 }}>
-                    {itens.map((i) => (
-                      <div key={i.id} style={{ fontSize: "0.95rem" }}>
-                        {i.marca} {i.modelo} × {i.quantity}
+                    {itens.length === 0 ? (
+                      <div style={{ fontSize: "0.95rem", opacity: 0.75 }}>
+                        (Sem itens gravados — confirma a coluna "itens" na
+                        sheet)
                       </div>
-                    ))}
+                    ) : (
+                      itens.map((i) => (
+                        <div key={i.id} style={{ fontSize: "0.95rem" }}>
+                          {i.marca} {i.modelo} × {i.quantity}
+                        </div>
+                      ))
+                    )}
                   </div>
 
                   <div style={{ marginTop: 6, fontWeight: 600 }}>
@@ -214,7 +242,13 @@ export default function Backoffice() {
                   </div>
                 </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5rem",
+                  }}
+                >
                   {order.estado !== "concluido" && (
                     <Button type="button" onClick={() => handleMarkPaid(order)}>
                       Marcar como pago

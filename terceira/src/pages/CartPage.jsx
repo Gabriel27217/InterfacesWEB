@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../hooks/useAuth";
 import { createOrder } from "../api/ordersApi";
 import { updateCarById } from "../api/carsApi";
+import { CarsContext } from "../context/CarsContext"; // ← NOVO
 
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
+  const { refreshCars } = useContext(CarsContext); // ← NOVO
   const [msg, setMsg] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -38,6 +40,7 @@ export default function CartPage() {
         foto: c.foto || "",
       }));
 
+      console.log("1. Criando pedido...");
       // 1) cria pedido
       await createOrder({
         clienteEmail,
@@ -46,14 +49,20 @@ export default function CartPage() {
         itens: JSON.stringify(itens),
       });
 
+      console.log("2. Marcando carros como sob_consulta...");
       // 2) marca carros como "sob_consulta"
       await Promise.all(
         cart.map((c) => updateCarById(c.id, { status: "sob_consulta" }))
       );
 
+      console.log("3. Refrescando carros..."); // ← NOVO
+      // 3) refresca carros → CRÍTICO para aparecer "Sob consulta" na loja
+      await refreshCars(); // ← NOVO
+
       clearCart();
       setMsg("Pedido criado! Estado: Em curso (aguarda validação do administrador).");
     } catch (e) {
+      console.error("Erro no checkout:", e);
       setMsg(e?.message || "Erro ao finalizar compra.");
     } finally {
       setSubmitting(false);

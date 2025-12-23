@@ -1,17 +1,21 @@
-//const API_URL =
-  //process.env.REACT_APP_CARS_API ||
-  //"https://api.sheety.co/3156a1682b37bad7288f630932369003/dataCarros/carros";
+// API antiga (comentada)
+// const API_URL =
+//   process.env.REACT_APP_CARS_API ||
+//   "https://api.sheety.co/3156a1682b37bad7288f630932369003/dataCarros/carros";
 
+// API nova
 const API_URL =
   process.env.REACT_APP_CARS_API ||
-  "https://api.sheety.co/483c093e1fe54f308dfe7b0dbafdf21a/dataCarros/carros";  
+  "https://api.sheety.co/483c093e1fe54f308dfe7b0dbafdf21a/dataCarros/carros";
 
 // GET
 export async function getCars() {
   const res = await fetch(API_URL);
   if (!res.ok) {
     let details = "";
-    try { details = await res.text(); } catch {}
+    try {
+      details = await res.text();
+    } catch {}
     throw new Error(`Erro ao obter carros (${res.status}) ${details}`);
   }
   const data = await res.json();
@@ -20,7 +24,7 @@ export async function getCars() {
 
 // CREATE
 export async function createCar(car) {
-  const payload = { carro: car }; // root singular [web:177]
+  const payload = { carro: car }; // root singular
 
   const res = await fetch(API_URL, {
     method: "POST",
@@ -30,7 +34,9 @@ export async function createCar(car) {
 
   if (!res.ok) {
     let details = "";
-    try { details = await res.text(); } catch {}
+    try {
+      details = await res.text();
+    } catch {}
     throw new Error(`Erro ao adicionar carro (${res.status}) ${details}`);
   }
 
@@ -39,7 +45,7 @@ export async function createCar(car) {
 
 // UPDATE
 export async function updateCarById(id, car) {
-  const payload = { carro: car }; // root singular [web:177]
+  const payload = { carro: car }; // root singular
 
   const res = await fetch(`${API_URL}/${id}`, {
     method: "PUT",
@@ -49,7 +55,9 @@ export async function updateCarById(id, car) {
 
   if (!res.ok) {
     let details = "";
-    try { details = await res.text(); } catch {}
+    try {
+      details = await res.text();
+    } catch {}
     throw new Error(`Erro ao atualizar carro (${res.status}) ${details}`);
   }
 
@@ -62,7 +70,9 @@ export async function deleteCarById(id) {
 
   if (!res.ok) {
     let details = "";
-    try { details = await res.text(); } catch {}
+    try {
+      details = await res.text();
+    } catch {}
     throw new Error(`Erro ao apagar carro (${res.status}) ${details}`);
   }
 
