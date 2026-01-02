@@ -1,23 +1,42 @@
+// Importações do React
 import React from "react";
-import Card from "../ui/Card";
-import Button from "../ui/Button";
+
+// Componentes reutilizáveis da UI
+import Card from "../ui/Card"; // Componente cartão para agrupar conteúdo
+import Button from "../ui/Button"; // Botão estilizado
+import LikeButton from "../ui/LikeButton"; // Botão de likes
+
+// Hook de autenticação
 import { useAuth } from "../../hooks/useAuth";
-import LikeButton from "../ui/LikeButton";
+
+// Hook do carrinho (Context)
 import { useCart } from "../../context/CartContext";
 
 export default function CarCard({ car, onEdit, onDelete }) {
+  // Obtemos dados do utilizador que fez login
   const { isLoggedIn, user } = useAuth();
+
+  // Obtemos a função para adicionar itens ao carrinho
   const { addToCart } = useCart();
 
+  // Verifica se o utilizador é admin (para mostrar botões de editar/apagar)
   const isAdmin = isLoggedIn && user && user.role === "admin";
 
+  // =========================
+  //     ESTADO DO CARRO
+  // =========================
+
+  // Define o status do carro (se vier vazio, assume "disponivel")
   const status = car.status || "disponivel";
+
+  // Flags de estado para simplificar condições no JSX
   const isSold = status === "vendido";
   const isReserved = status === "sob_consulta";
 
-  // cliente só pode adicionar se estiver "disponivel"
+  // Cliente só pode adicionar ao carrinho se estiver "disponivel"
   const canAddToCart = status === "disponivel";
 
+  // Função para mostrar o texto do preço conforme o estado do carro
   function getPriceLabel() {
     if (isSold) return "Vendido";
     if (isReserved) return "Sob consulta";
@@ -26,8 +45,9 @@ export default function CarCard({ car, onEdit, onDelete }) {
 
   return (
     <Card>
+      {/* IMAGEM DO CARRO + BADGE (VENDIDO / SOB CONSULTA) */}
       <div style={{ marginBottom: "1rem", position: "relative" }}>
-        {/* Badge (tipo o print) */}
+        {/* Badge aparece apenas se o carro estiver vendido ou sob consulta */}
         {(isSold || isReserved) && (
           <div
             style={{
@@ -52,17 +72,18 @@ export default function CarCard({ car, onEdit, onDelete }) {
         {car.foto ? (
           <img
             src={car.foto}
-            alt={car.modelo}
+            alt={car.modelo} // Alt é importante para acessibilidade
             style={{
               width: "100%",
               height: "200px",
               objectFit: "cover",
               borderRadius: "4px",
               border: "1px solid #eee",
-              opacity: isSold ? 0.85 : 1,
+              opacity: isSold ? 0.85 : 1, // Se estiver vendido, a imagem fica ligeiramente “apagada”
             }}
           />
         ) : (
+          // Caso não haja foto, mostrar um placeholder
           <div
             style={{
               width: "100%",
@@ -80,7 +101,7 @@ export default function CarCard({ car, onEdit, onDelete }) {
         )}
       </div>
 
-      {/* CABEÇALHO */}
+      {/* CABEÇALHO: Marca + Modelo + LikeButton */}
       <div
         style={{
           display: "flex",
@@ -93,13 +114,16 @@ export default function CarCard({ car, onEdit, onDelete }) {
           {car.marca} {car.modelo}
         </h3>
 
+        {/* Botão de like do carro */}
         <LikeButton carId={car.id} initialLikes={car.likes || 0} />
       </div>
 
+      {/* DETALHES DO CARRO */}
       <div style={{ fontSize: "0.9rem", color: "#555", marginBottom: "1rem" }}>
         <p style={{ margin: "4px 0" }}>Ano: {car.ano}</p>
         <p style={{ margin: "4px 0" }}>KM: {car.km}</p>
 
+        {/* Preço ou label conforme estado */}
         <p
           style={{
             margin: "8px 0",
@@ -112,7 +136,7 @@ export default function CarCard({ car, onEdit, onDelete }) {
         </p>
       </div>
 
-      {/* Botões */}
+      {/* BOTÕES: Carrinho + Admin (Editar/Apagar) */}
       <div
         style={{
           marginTop: "1rem",
@@ -123,11 +147,11 @@ export default function CarCard({ car, onEdit, onDelete }) {
           flexWrap: "wrap",
         }}
       >
-        {/* Carrinho */}
+        {/* Botão de Carrinho */}
         <Button
           type="button"
           onClick={() => addToCart(car)}
-          disabled={!canAddToCart}
+          disabled={!canAddToCart} // Botão fica desativado quando não está disponível [web:272]
           style={{
             fontSize: "0.8rem",
             padding: "0.4rem 0.8rem",
@@ -138,7 +162,7 @@ export default function CarCard({ car, onEdit, onDelete }) {
           {canAddToCart ? "Adicionar ao Carrinho" : "Indisponível"}
         </Button>
 
-        {/* Admin */}
+        {/* BOTÕES ADMIN: Editar / Apagar */}
         {isAdmin && (
           <>
             {onEdit && (
@@ -149,6 +173,7 @@ export default function CarCard({ car, onEdit, onDelete }) {
                 Editar
               </Button>
             )}
+
             {onDelete && (
               <Button
                 onClick={() => onDelete(car.id)}

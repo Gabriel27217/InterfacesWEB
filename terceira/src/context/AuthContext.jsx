@@ -1,69 +1,93 @@
-// src/context/AuthContext.jsx
+// Importa funcionalidades do React
 import React, { createContext, useState } from "react";
-import { getClients, createClient } from "../api/clientsApi"; //caminho certo zé 
 
+// Importa funções da API para obter e criar clientes
+import { getClients, createClient } from "../api/clientsApi"; // caminho correto da API
+
+// Criação do contexto de autenticação
 export const AuthContext = createContext();
 
+// Componente Provider que envolve a aplicação
 export function AuthProvider({ children }) {
+  // Estado que guarda o utilizador autenticado
+  // Se for null, não existem logins 
   const [user, setUser] = useState(null);
 
-  // --- LOGIN (API) ---
+  // -----------------------------
+  // FUNÇÃO DE LOGIN (via API)
+  // -----------------------------
   const login = async (email, password) => {
     try {
-      const clientes = await getClients(); // GET /clientes 
+      // Vai buscar todos os clientes à API (ex: Google Sheets)
+      const clientes = await getClients(); // GET /clientes
 
+      // Procura um cliente com email e password correspondentes
       const utilizadorEncontrado = (clientes || []).find(
         (c) =>
-          String(c.email || "").toLowerCase() === String(email || "").toLowerCase() &&
+          // Compara emails ignorando maiúsculas/minúsculas
+          String(c.email || "").toLowerCase() ===
+            String(email || "").toLowerCase() &&
+          // Compara passwords
           String(c.password ?? "") === String(password ?? "")
       );
 
+      // Se não encontrar utilizador, devolve erro
       if (!utilizadorEncontrado) {
         return { success: false, message: "Email ou password incorretos." };
       }
 
+      // Define o role do utilizador (admin ou client)
       const role = utilizadorEncontrado.role === "admin" ? "admin" : "client";
 
+      // Guarda o utilizador autenticado no estado
       setUser({
         name: utilizadorEncontrado.nome || "Utilizador",
         email: utilizadorEncontrado.email,
-        role,
-        dados: utilizadorEncontrado,
+        role: role,
+        dados: utilizadorEncontrado, // dados completos do utilizador
       });
 
+      // Devolve sucesso e o role (usado para navegação)
       return { success: true, role };
     } catch (error) {
+      // Caso haja erro de sistema
       console.error("Erro no login:", error);
       return { success: false, message: "Erro de sistema." };
     }
   };
 
-  // --- REGISTO (API) ---
+  // -----------------------------
+  // FUNÇÃO DE REGISTO (via API)
+  // -----------------------------
   const register = async (dadosCliente) => {
     try {
-      // 1) Verificar se email já existe (na API)
-      const clientes = await getClients(); // [file:9]
+      // 1️⃣ Vai buscar todos os clientes para verificar duplicados
+      const clientes = await getClients();
+
+      // Verifica se já existe um cliente com o mesmo email
       const existe = (clientes || []).some(
         (c) =>
           String(c.email || "").toLowerCase() ===
           String(dadosCliente.email || "").toLowerCase()
       );
 
+      // Se o email já existir, devolve erro
       if (existe) {
         return { success: false, message: "Este email já está registado." };
       }
 
-      // 2) Criar na API (isto é o que faz aparecer na Google Sheet)
+      // 2️⃣ Cria o objeto do novo cliente para enviar à API
       const novoClienteAPI = {
         nome: dadosCliente.nome,
         email: dadosCliente.email,
         password: String(dadosCliente.password ?? ""),
-        role: "client",
+        role: "client", // todos os novos registos são clientes
       };
 
-      await createClient(novoClienteAPI); // POST /clientes com { clientes: ... } [file:9]
+      // Envia o novo cliente para a API (POST)
+      await createClient(novoClienteAPI);
 
-      // 3) Login automático
+      // 3️⃣ Login automático após registo
       setUser({
         name: novoClienteAPI.nome || "Utilizador",
         email: novoClienteAPI.email,
@@ -71,17 +95,33 @@ export function AuthProvider({ children }) {
         dados: novoClienteAPI,
       });
 
+      // Devolve sucesso
       return { success: true };
     } catch (error) {
+      // Caso ocorra algum erro
       console.error("Erro no registo:", error);
       return { success: false, message: "Erro ao criar conta." };
     }
   };
 
+  // -----------------------------
+  // FUNÇÃO DE LOGOUT
+  // -----------------------------
   const logout = () => setUser(null);
 
+  // -----------------------------
+  // PROVIDER DO CONTEXTO
+  // -----------------------------
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, logout, register }}>
+    <AuthContext.Provider
+      value={{
+        user,                // dados do utilizador
+        isLoggedIn: !!user,   // true se estiver logado
+        login,               // função de login
+        logout,              // função de logout
+        register,            // função de registo
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

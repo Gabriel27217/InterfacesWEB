@@ -1,13 +1,37 @@
+/* ===========================
+   Estilo global do body
+   =========================== */
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  margin: 0; /* Remove a margem padrão do browser, evitando espaços indesejados */
+
+  /* Define a fonte principal da aplicação, usando um "stack" de fontes modernas e seguras */
+  font-family:
+    -apple-system, /* Safari / iOS */
+    BlinkMacSystemFont, /* Chrome macOS */
+    "Segoe UI", /* Windows */
+    "Roboto", /* Android / Google */
+    "Oxygen", /* Linux */
+    "Ubuntu", /* Linux */
+    "Cantarell", /* Linux */
+    "Fira Sans", /* Linux */
+    "Droid Sans", /* Android */
+    "Helvetica Neue", /* fallback genérico */
+    sans-serif; /* fallback padrão para sans-serif */
+
+  -webkit-font-smoothing: antialiased; /* Suaviza fontes em navegadores WebKit (Chrome, Safari) [web:234] */
+  -moz-osx-font-smoothing: grayscale; /* Suaviza fontes no Firefox em macOS [web:234] */
 }
 
+/* ===========================
+   Estilo para código
+   =========================== */
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  /* Define fontes monoespaçadas ideais para exibir código */
+  font-family:
+    source-code-pro,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Courier New",
     monospace;
 }

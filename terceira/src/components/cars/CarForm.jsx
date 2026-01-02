@@ -1,22 +1,27 @@
 import React, { useState, useEffect, useContext } from "react";
-import { CarsContext } from "../../context/CarsContext";
-import Input from "../ui/Input";
-import Button from "../ui/Button";
+import { CarsContext } from "../../context/CarsContext"; // Contexto para gerir carros
+import Input from "../ui/Input"; // Componente Input estilizado
+import Button from "../ui/Button"; // Componente Button estilizado
 
+// O componente recebe props:
+// - editingCar: se não for null, indica que estamos editando um carro existente
+// - onFinish: função callback para ser chamada após concluir o submit ou cancelar
 export default function CarForm({ editingCar, onFinish }) {
-  const { addCar, updateCar } = useContext(CarsContext);
+  const { addCar, updateCar } = useContext(CarsContext); // Métodos do contexto de carros
 
+  // Estado do formulário
   const [formData, setFormData] = useState({
     marca: "",
     modelo: "",
     ano: "",
     preco: "",
     cor: "",
-    km: "",
+    quilometragem: "",
     descricao: "",
     foto: "",
   });
 
+  // Atualiza o formulário caso estejamos a editar um carro
   useEffect(() => {
     if (editingCar) {
       setFormData({
@@ -25,59 +30,67 @@ export default function CarForm({ editingCar, onFinish }) {
         ano: editingCar.ano || "",
         preco: editingCar.preco || "",
         cor: editingCar.cor || "",
-        km: editingCar.km || "",
+        quilometragem: editingCar.quilometragem || "",
         descricao: editingCar.descricao || "",
         foto: editingCar.foto || "",
       });
     } else {
+      // Se não estiver a editar, limpa o formulário
       setFormData({
         marca: "",
         modelo: "",
         ano: "",
         preco: "",
         cor: "",
-        km: "",
+        quilometragem: "",
         descricao: "",
         foto: "",
       });
     }
-  }, [editingCar]);
+  }, [editingCar]); // Executa sempre que editingCar mudar
 
+  // Atualiza um campo específico do formulário
+  // name = nome do campo, value = valor do campo
   const updateField = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Função chamada ao submeter o formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Converte campos numéricos para número
     const carData = {
       ...formData,
       ano: parseInt(formData.ano) || 0,
       preco: parseFloat(formData.preco) || 0,
-      km: parseInt(formData.km) || 0,
+      quilometragem: parseInt(formData.quilometragem) || 0,
     };
 
-    let ok;
+    let result;
     if (editingCar) {
-      ok = await updateCar(editingCar.id, carData);
+      // Se estamos a editar, chamamos updateCar
+      result = await updateCar(editingCar.id, carData);
     } else {
-      ok = await addCar(carData);
+      // Se é um carro novo, chamamos addCar
+      result = await addCar(carData);
     }
 
-    if (ok) {
+    if (result.ok) {
+      // Limpa o formulário após sucesso
       setFormData({
         marca: "",
         modelo: "",
         ano: "",
         preco: "",
         cor: "",
-        km: "",
+        quilometragem: "",
         descricao: "",
         foto: "",
       });
-      if (onFinish) onFinish();
+      if (onFinish) onFinish(); // Callback opcional para avisar que terminou
     } else {
-      alert("Erro ao guardar carro.");
+      alert(result.message); // Mostra erro se houver
     }
   };
 
@@ -94,6 +107,7 @@ export default function CarForm({ editingCar, onFinish }) {
     >
       <h3>{editingCar ? "Editar Carro" : "Adicionar Carro"}</h3>
 
+      {/* CAMPO MARCA */}
       <Input
         label="Marca"
         name="marca"
@@ -103,6 +117,7 @@ export default function CarForm({ editingCar, onFinish }) {
         required
       />
 
+      {/* CAMPO MODELO */}
       <Input
         label="Modelo"
         name="modelo"
@@ -111,6 +126,7 @@ export default function CarForm({ editingCar, onFinish }) {
         required
       />
 
+      {/* CAMPO ANO E PREÇO EM FLEXBOX */}
       <div style={{ display: "flex", gap: "1rem" }}>
         <Input
           label="Ano"
@@ -130,6 +146,7 @@ export default function CarForm({ editingCar, onFinish }) {
         />
       </div>
 
+      {/* CAMPO COR E QUILOMETRAGEM */}
       <div style={{ display: "flex", gap: "1rem" }}>
         <Input
           label="Cor"
@@ -139,13 +156,16 @@ export default function CarForm({ editingCar, onFinish }) {
         />
         <Input
           label="Quilometragem"
-          name="km"
+          name="quilometragem"
           type="number"
-          value={formData.km}
-          onChange={(e) => updateField("km", e.target ? e.target.value : e)}
+          value={formData.quilometragem}
+          onChange={(e) =>
+            updateField("quilometragem", e.target ? e.target.value : e)
+          }
         />
       </div>
 
+      {/* CAMPO FOTO */}
       <Input
         label="URL da Foto"
         name="foto"
@@ -154,6 +174,7 @@ export default function CarForm({ editingCar, onFinish }) {
         placeholder="https://..."
       />
 
+      {/* CAMPO DESCRIÇÃO */}
       <div style={{ marginBottom: "1rem" }}>
         <label style={{ display: "block", marginBottom: "0.5rem" }}>
           Descrição
@@ -167,6 +188,7 @@ export default function CarForm({ editingCar, onFinish }) {
         />
       </div>
 
+      {/* BOTÕES */}
       <div style={{ display: "flex", gap: "1rem" }}>
         <Button type="submit">
           {editingCar ? "Atualizar" : "Adicionar Carro"}
